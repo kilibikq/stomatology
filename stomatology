@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI-администратор для вашего бизнеса — демо</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EDF1F6; --surface:#FFFFFF; --ink:#14213D; --muted:#5A6781; --line:#D5DCE7;
+  --accent:#2B59FF; --accent-ink:#FFFFFF; --bot:#F1F4F9; --me:#2B59FF; --me-ink:#fff; --ok:#12805C; --ok-bg:#DDF3EA;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1524; --surface:#162036; --ink:#E8EDF7; --muted:#9AA7C0; --line:#27334F;
+    --accent:#6C8CFF; --accent-ink:#0E1524; --bot:#1E2A45; --me:#4A6CF0; --me-ink:#fff; --ok:#5FD3A6; --ok-bg:#16382F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1524; --surface:#162036; --ink:#E8EDF7; --muted:#9AA7C0; --line:#27334F;
+  --accent:#6C8CFF; --accent-ink:#0E1524; --bot:#1E2A45; --me:#4A6CF0; --me-ink:#fff; --ok:#5FD3A6; --ok-bg:#16382F;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Onest',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.55;font-size:16px}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px}
+h1,h2{font-family:'Unbounded','Onest',system-ui,sans-serif;font-weight:600;letter-spacing:-.01em;line-height:1.12;margin:0}
+h1{font-size:clamp(28px,5.2vw,46px);max-width:15ch}
+h2{font-size:clamp(20px,3vw,26px)}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;padding:28px 0 8px}
+.lead{color:var(--muted);font-size:18px;max-width:46ch;margin:18px 0 0}
+.points{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:12px;max-width:46ch}
+.points li{padding-left:18px;border-left:3px solid var(--accent)}
+.points b{font-weight:600}
+.hint{margin-top:22px;color:var(--muted);font-size:14px}
+
+/* demo */
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 18px 50px rgba(20,33,61,.12)}
+.tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:14px;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tab:focus-visible,.chip:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bizbar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:600}
+.bizbar strong{display:block;font-size:15px;line-height:1.2}
+.bizbar span{font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
+.log{height:380px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.msg{max-width:84%;padding:10px 14px;border-radius:16px;font-size:15px;white-space:pre-line}
+.msg.bot{background:var(--bot);border-bottom-left-radius:4px;align-self:flex-start}
+.msg.me{background:var(--me);color:var(--me-ink);border-bottom-right-radius:4px;align-self:flex-end}
+.typing{color:var(--muted);font-size:14px;align-self:flex-start;padding:4px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-self:flex-start}
+.chip{border:1px solid var(--accent);background:transparent;color:var(--accent);font:inherit;font-size:14px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.chip:hover{background:var(--accent);color:var(--accent-ink)}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.composer input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.composer button{font:inherit;font-weight:600;border:0;background:var(--accent);color:var(--accent-ink);padding:0 18px;border-radius:12px;cursor:pointer}
+
+/* owner side */
+.owner{margin-top:18px;border:1px dashed var(--line);border-radius:16px;padding:14px 16px}
+.owner h3{margin:0 0 8px;font-size:14px;font-weight:600;color:var(--muted)}
+.empty{font-size:14px;color:var(--muted)}
+.lead-card{background:var(--ok-bg);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:8px;border-left:4px solid var(--ok)}
+.lead-card b{font-weight:600}
+
+/* offer */
+.offer{margin-top:56px;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+.steps{display:grid;gap:14px;margin-top:18px}
+.step{display:grid;grid-template-columns:34px 1fr;gap:12px}
+.step i{font-style:normal;width:34px;height:34px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;font-weight:600;font-size:14px}
+.step p{margin:0;color:var(--muted)}
+.step strong{display:block;color:var(--ink);font-weight:600}
+.price{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px}
+.price .sum{font-family:'Unbounded',sans-serif;font-weight:600;font-size:32px;margin:10px 0 2px}
+.price small{color:var(--muted)}
+.price ul{margin:16px 0;padding-left:18px;color:var(--muted)}
+.cta{display:inline-block;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:600;padding:12px 20px;border-radius:12px}
+@media (max-width:860px){
+  .hero,.offer{grid-template-columns:1fr}
+  .log{height:340px}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Бот, который отвечает клиентам и записывает их, пока вы заняты</h1>
+      <p class="lead">Клиенты пишут в 11 вечера и в выходные. Сейчас часть из них не дожидается ответа и уходит к конкурентам. Бот отвечает сразу, а вам приходит готовая заявка.</p>
+      <ul class="points">
+        <li><b>Отвечает за 2 секунды</b> на цены, адрес, график, услуги.</li>
+        <li><b>Записывает клиента</b> и присылает вам имя, телефон и время.</li>
+        <li><b>Не придумывает лишнего:</b> если вопрос сложный, зовёт человека.</li>
+      </ul>
+      <p class="hint">Справа живое демо. Выберите бизнес и напишите боту как клиент. Это сценарная версия: в рабочем проекте бот подключается к вашему прайсу и расписанию.</p>
+    </div>
+
+    <div>
+      <div class="demo">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div class="bizbar">
+          <div class="avatar" id="av">Л</div>
+          <div><strong id="bizname"></strong><span><i class="dot"></i>онлайн, отвечает сразу</span></div>
+        </div>
+        <div class="log" id="log" aria-live="polite"></div>
+        <form class="composer" id="form" onsubmit="return false">
+          <input id="inp" type="text" placeholder="Напишите сообщение..." autocomplete="off" aria-label="Сообщение боту">
+          <button type="submit" id="send">Отправить</button>
+        </form>
+      </div>
+      <div class="owner">
+        <h3>Что увидит владелец в Telegram</h3>
+        <div id="leads"><div class="empty">Пока заявок нет. Запишитесь через бота, и заявка появится здесь.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="offer">
+    <div>
+      <h2>Как мы запускаем бота</h2>
+      <div class="steps">
+        <div class="step"><i>1</i><div><strong>Вы присылаете прайс и график</strong><p>Достаточно скриншота или текста. Анкеты на 40 вопросов не будет.</p></div></div>
+        <div class="step"><i>2</i><div><strong>Мы собираем и тестируем бота</strong><p>Вы проверяете ответы и говорите, что поправить.</p></div></div>
+        <div class="step"><i>3</i><div><strong>Подключаем к Telegram, сайту или VK</strong><p>Заявки приходят вам в личные сообщения.</p></div></div>
+        <div class="step"><i>4</i><div><strong>Первая неделя на сопровождении</strong><p>Смотрим реальные диалоги и дорабатываем ответы.</p></div></div>
+      </div>
+    </div>
+    <div class="price">
+      <h2>Стоимость</h2>
+      <div class="sum">от 20 000 ₽</div>
+      <small>запуск, затем от 3 000 ₽/мес за поддержку</small>
+      <ul>
+        <li>Срок запуска: 3–5 дней</li>
+        <li>Правки ответов в первый месяц бесплатно</li>
+        <li>Если за 14 дней бот не принёс ни одной заявки, возвращаем оплату запуска</li>
+      </ul>
+      <a class="cta" href="#" onclick="return false">Написать: @ваш_telegram</a>
+    </div>
+  </section>
+</div>
+
+<script>
+const NICHES = {
+  salon: {
+    tab:'Салон красоты', name:'Студия «Лён»', letter:'Л',
+    hours:'ежедневно с 10:00 до 21:00', addr:'ул. Центральная, 12, 2 этаж',
+    services:[['Маникюр с покрытием','2 500 ₽'],['Женская стрижка','2 200 ₽'],['Окрашивание','от 5 500 ₽']],
+    verb:'записаться', pick:'Какая услуга нужна?', noun:'запись',
+    greet:'Здравствуйте! Я помощник студии «Лён». Подскажу цены и запишу вас к мастеру.',
+    extra:{'парков':'Рядом с входом есть бесплатная парковка на 6 мест.','отмен':'Запись можно перенести или отменить за 3 часа до визита, без штрафов.','оплат':'Принимаем карты, наличные и СБП.'}
+  },
+  dent: {
+    tab:'Стоматология', name:'Клиника «Улыбка»', letter:'У',
+    hours:'пн–сб с 9:00 до 20:00', addr:'пр. Мира, 45, вход со двора',
+    services:[['Консультация и осмотр','бесплатно'],['Профессиональная чистка','4 800 ₽'],['Лечение кариеса','от 5 200 ₽']],
+    verb:'записаться', pick:'На какой приём вас записать?', noun:'запись',
+    greet:'Здравствуйте! Я помощник клиники «Улыбка». Отвечу на вопросы и запишу на приём.',
+    extra:{'больно':'Лечим с местной анестезией, чтобы вы не чувствовали боли. Врач всё объяснит до начала.','отмен':'Запись можно перенести за сутки до приёма.','оплат':'Оплата картой или наличными, есть рассрочка на лечение от 20 000 ₽.'}
+  },
+  rest: {
+    tab:'Ресторан', name:'Бистро «Печь»', letter:'П',
+    hours:'ежедневно с 12:00 до 23:00', addr:'ул. Садовая, 3',
+    services:[['Стол на 2 человек','без депозита'],['Стол на 4–6 человек','без депозита'],['Банкет от 10 человек','обсуждаем меню']],
+    verb:'забронировать стол', pick:'На какую компанию бронируем?', noun:'бронь',
+    greet:'Добрый день! Я помощник бистро «Печь». Помогу выбрать столик и оформлю бронь.',
+    extra:{'меню':'Основное меню: паста от 590 ₽, пицца из печи от 650 ₽, десерты от 350 ₽. Полное меню пришлю после брони.','детск':'Есть детское меню и стульчики для малышей.','парков':'Парковка во дворе, 10 минут пешком до центра.'}
+  }
+};
+
+let cur = 'salon', step = null, draft = {}, leads = [];
+const $ = id => document.getElementById(id);
+const log = $('log');
+
+function scroll(){ log.scrollTop = log.scrollHeight; }
+function userSay(t){
+  const d = document.createElement('div'); d.className='msg me'; d.textContent=t; log.appendChild(d); scroll();
+}
+function clearChips(){ log.querySelectorAll('.chips').forEach(c=>c.remove()); }
+function botSay(text, chips, delay){
+  const ty = document.createElement('div'); ty.className='typing'; ty.textContent='печатает...'; log.appendChild(ty); scroll();
+  setTimeout(()=>{
+    ty.remove();
+    const d = document.createElement('div'); d.className='msg bot'; d.textContent=text; log.appendChild(d);
+    if(chips && chips.length){
+      const w = document.createElement('div'); w.className='chips';
+      chips.forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=c; b.onclick=()=>handle(c); w.appendChild(b); });
+      log.appendChild(w);
+    }
+    scroll();
+  }, delay||650);
+}
+const MAIN = n => ['Цены','Адрес и график', cap(n.verb)];
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function start(){
+  const n = NICHES[cur]; step=null; draft={}; log.innerHTML='';
+  $('bizname').textContent = n.name; $('av').textContent = n.letter;
+  botSay(n.greet+'\nЧем помочь?', MAIN(n), 300);
+}
+
+function days(){
+  const names=['сегодня','завтра','послезавтра']; return names;
+}
+
+function handle(raw){
+  const text = (raw||'').trim(); if(!text) return;
+  clearChips(); userSay(text);
+  const n = NICHES[cur], t = text.toLowerCase();
+
+  if(step==='service'){ draft.service=text; step='day'; return botSay('Когда вам удобно?', days()); }
+  if(step==='day'){ draft.day=text; step='time'; return botSay('Выберите время:', ['11:00','14:30','18:00']); }
+  if(step==='time'){ draft.time=text; step='contact'; return botSay('Почти готово. Напишите ваше имя и телефон одним сообщением, например: Анна, +7 900 123-45-67'); }
+  if(step==='contact'){
+    draft.contact=text; step=null;
+    addLead(n, draft);
+    return botSay('Готово! '+cap(n.noun)+' оформлена:\n'+draft.service+'\n'+draft.day+', '+draft.time+'\nМы свяжемся с вами для подтверждения. Что-то ещё подсказать?', MAIN(n), 800);
+  }
+
+  if(/запис|брон|заказ|окошк|свобод/.test(t) || t===n.verb){
+    step='service'; return botSay(n.pick, n.services.map(s=>s[0]));
+  }
+  if(/цен|прайс|стоит|сколько|стоимост/.test(t)){
+    const list = n.services.map(s=>'• '+s[0]+' — '+s[1]).join('\n');
+    return botSay('Основные позиции:\n'+list+'\n\nХотите '+n.verb+'?', [cap(n.verb)]);
+  }
+  if(/адрес|где|находит|как добраться|график|время работ|часы|открыт|работает/.test(t)){
+    return botSay('Мы работаем '+n.hours+'.\nАдрес: '+n.addr+'.', [cap(n.verb),'Цены']);
+  }
+  for(const k in n.extra){ if(t.indexOf(k)>-1) return botSay(n.extra[k], [cap(n.verb),'Цены']); }
+  if(/привет|здравств|добрый/.test(t)) return botSay('Здравствуйте! Чем могу помочь?', MAIN(n));
+  if(/спасибо|благодар/.test(t)) return botSay('Пожалуйста! Если что, пишите в любое время.');
+  botSay('Этот вопрос лучше уточнить у администратора, чтобы не ошибиться. Передал ему ваше сообщение, он ответит в рабочее время. Пока могу помочь с ценами, графиком и записью.', MAIN(n), 800);
+}
+
+function addLead(n, d){
+  if(!leads.length) $('leads').innerHTML='';
+  const c = document.createElement('div'); c.className='lead-card';
+  c.innerHTML = '<b>Новая '+n.noun+'</b> · '+escapeHtml(n.name)+'<br>'+escapeHtml(d.service)+', '+escapeHtml(d.day)+' '+escapeHtml(d.time)+'<br>Контакт: '+escapeHtml(d.contact);
+  $('leads').prepend(c); leads.push(d);
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function buildTabs(){
+  const tabs = $('tabs'); tabs.innerHTML='';
+  Object.keys(NICHES).forEach(k=>{
+    const b = document.createElement('button'); b.type='button'; b.className='tab'; b.setAttribute('role','tab');
+    b.textContent = NICHES[k].tab; b.setAttribute('aria-selected', k===cur);
+    b.onclick = ()=>{ cur=k; buildTabs(); start(); };
+    tabs.appendChild(b);
+  });
+}
+$('form').addEventListener('submit', ()=>{ const v=$('inp').value; $('inp').value=''; handle(v); });
+buildTabs(); start();
+</script>
+</body>
+</html>
